@@ -169,15 +169,15 @@ TICKET: for my $id (@rt_tickets) {
         $body .= sprintf( "\n$from\n```\n%s\n```\n", $c->content );
     }
 
-    utf8::encode($body);
 
-    # XXX always dry run for now
-    if ( 1 || $dry_run ) {
-        $subject =~ say "ticket #$id ($trunc_subject) would be copied to github as:";
+    if ( $dry_run ) {
+        say "ticket #$id ($trunc_subject) would be copied to github as:";
         $body =~ s/^/    /gm;
         say "    Subject: $subject\n\n$body\n";
     }
     else {
+        utf8::encode($subject);
+        utf8::encode($body);
         my $isu;
         try {
             $isu = $gh_issue->create_issue(
