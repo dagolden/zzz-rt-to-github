@@ -9,17 +9,25 @@ use Encode qw/decode/;
 use IO::Prompt::Tiny qw/prompt/;
 use Net::GitHub;
 use Path::Tiny;
-use RT::Client::REST::Ticket;
 use RT::Client::REST;
+use RT::Client::REST::Ticket;
+use RT::Client::REST::User;
 use Syntax::Keyword::Junction qw/any/;
 use Try::Tiny;
 use Getopt::Long;
 
+binmode( STDOUT, ":utf8" );
+
 my $dry_run;
-GetOptions( "dry-run|n" => \$dry_run );
+my $ticket;
+GetOptions(
+    "dry-run|n"  => \$dry_run,
+    "ticket|t=i" => \$ticket
+);
 
 my $pause_rc = path( $ENV{HOME}, ".pause" );
 my %pause;
+my %user_cache;
 
 sub _git_config {
     my $key = shift;
@@ -51,6 +59,17 @@ sub _dist_name {
     }
 
     return '';
+}
+
+sub _find_from {
+    my ( $xact ) = @_;
+    my $user = $user_cache{ $xact->creator } ||= RT::Client::REST::User->new(
+        id => $xact->creator,
+        rt => $xact->rt,
+    );
+    $user->retrieve;
+
+    return sprintf("From %s on %s:", lc( $user->email_address // "unknown" ), $xact->created);
 }
 
 my $github_user       = prompt( "github user: ",  _git_config("github.user") );
@@ -95,6 +114,9 @@ my @rt_tickets = $rt->search(
 
 TICKET: for my $id (@rt_tickets) {
 
+    # maybe only a single ticket
+    next TICKET if $ticket && $id != $ticket;
+
     # skip if already migrated
     if ( my $issue = $rt_gh_map{$id} ) {
         say "ticket #$id already on github as $issue->{number} ($issue->{html_url})";
@@ -110,20 +132,24 @@ TICKET: for my $id (@rt_tickets) {
 
     # subject and initial body text
     my $subject = $ticket->subject;
+    my $trunc_subject =
+      length($subject) <= 20 ? $subject : ( substr( $subject, 0, 20 ) . "..." );
+    my $status = $ticket->status;
     my $body =
-      "Migrated from [rt.cpan.org#$id](https://rt.cpan.org/Ticket/Display.html?id=$id)";
+      "Migrated from [rt.cpan.org#$id](https://rt.cpan.org/Ticket/Display.html?id=$id) (status: $status)\n";
+
 
     # requestor email addresses
     my $requestors = join( "", map { "* $_\n" } $ticket->requestors );
-    $body .= "\nRequested by:\n$requestors";
+    $body .= "\nRequestors:\n$requestors";
 
     # attachment URLs (if any)
     my @attach_links;
     my $attach = $ticket->attachments->get_iterator;
     while ( my $i = $attach->() ) {
-        my $name = $i->file_name or next;
         my $xact = $i->transaction_id;
         my $id   = $i->id;
+        my $name = $i->file_name or next;
         push @attach_links, "[$name](https://rt.cpan.org/Ticket/Attachment/$xact/$id/$name)";
     }
     if (@attach_links) {
@@ -133,21 +159,23 @@ TICKET: for my $id (@rt_tickets) {
 
     # initial ticket text
     my $create = $ticket->transactions( type => 'Create' )->get_iterator->();
-    $body .= sprintf( "\n```\n%s\n```\n", $create->content );
+    my $op = _find_from($create);
+    $body .= sprintf( "\n$op\n```\n%s\n```\n", $create->content );
 
     # subsequent ticket discussion
     my $comments = $ticket->transactions( type => 'Correspond' )->get_iterator;
     while ( my $c = $comments->() ) {
-        $body .= sprintf( "\n```\n%s\n```\n", $c->content );
+        my $from = _find_from($c);
+        $body .= sprintf( "\n$from\n```\n%s\n```\n", $c->content );
     }
 
     utf8::encode($body);
 
     # XXX always dry run for now
     if ( 1 || $dry_run ) {
-        say "ticket #$id ($subject) would be copied to github as:";
+        $subject =~ say "ticket #$id ($trunc_subject) would be copied to github as:";
         $body =~ s/^/    /gm;
-        say "$subject\n\n$body\n";
+        say "    Subject: $subject\n\n$body\n";
     }
     else {
         my $isu;
@@ -160,13 +188,13 @@ TICKET: for my $id (@rt_tickets) {
             );
         }
         catch {
-            say "ticket #$id ($subject) had an error posting to Github: $_";
+            say "ticket #$id ($trunc_subject) had an error posting to Github: $_";
             next TICKET;
         };
 
         my $gh_id  = $isu->{number};
         my $gh_url = $isu->{html_url};
-        say "ticket #$id ($subject) copied to github as #$gh_id ($gh_url)";
+        say "ticket #$id ($trunc_subject) copied to github as #$gh_id ($gh_url)";
 
         try {
             $rt->correspond(
