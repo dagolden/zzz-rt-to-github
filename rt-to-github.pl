@@ -136,7 +136,7 @@ TICKET: for my $id (@rt_tickets) {
       length($subject) <= 20 ? $subject : ( substr( $subject, 0, 20 ) . "..." );
     my $status = $ticket->status;
     my $body =
-      "Migrated from [rt.cpan.org#$id](https://rt.cpan.org/Ticket/Display.html?id=$id) (status: $status)\n";
+      "Migrated from [rt.cpan.org#$id](https://rt.cpan.org/Ticket/Display.html?id=$id) (status was '$status')\n";
 
 
     # requestor email addresses
