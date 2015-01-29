@@ -110,9 +110,10 @@ by the work of others:
   of my original by Mark Stosberg added some features like importing
   all comments (though differently than how I wound up doing it).
 
-While I haven't used it, leejo also created a [RT to Github migration
-tool](https://github.com/leejo/rt-to-github) based on Mark's adaptation of
-mine.
+While I never used it, Lee Johnson also created a RT to Github migration
+tool based on Mark's adaptation of mine.  He's since removed it in favor of
+this one, but you can see his final version
+[here](https://github.com/leejo/rt-to-github/blob/fa311bce986eeef2c844659ee9d36e50364e361c/rt-to-github.pl).
 
 ## License
 
