@@ -58,7 +58,12 @@ all the prompts should be correct and you'll see your tickets migrated.
 the organization name for the "repo owner" field instead of your github
 user name.
 
-Here's an example of how I migrated tickets for IO::CaptureOutput:
+For a "dry-run" use the `-n` flag.  That will dump the full text of each
+ticket to show how the migrated ticket would look.
+
+To migrate only a single ticket, use `-t <ticket-number>`.
+
+Here's an example of how I migrated all tickets for IO::CaptureOutput:
 
 ```
 $ cd ~/git/IO-CaptureOutput
