@@ -39,6 +39,36 @@ user DAGOLDEN
 password trustN01
 ```
 
+## How to use rt-to-github.pl
+
+Change to the checked out repository directory.  If the basename of the
+directory matches your repository name (which is common for git clones),
+it will be the default repository name.
+
+If your repository has a `dist.ini` file and you have `name = ...` as
+the first line, that will be used for the default RT distribution
+name. Otherwise, if you have a `MYMETA.json` or `META.json` (or the YAML
+equivalents), those will be used to find the distribution name default.
+
+Run `rt-to-github.pl`.  You will be prompted for Github and PAUSE
+information.  If you set things up following the instructions above,
+all the prompts should be correct.
+
+```
+$ cd ~/git/IO-CaptureOutput
+$ rt-to-github.pl
+github user:  [dagolden]
+github token:  [e9c4fc1c59b35c2a4e5d6c0ce204dbd9bd74d7aa]
+repo owner:  [dagolden]
+repo name:  [IO-CaptureOutput]
+PAUSE ID:  [DAGOLDEN]
+RT dist name:  [IO-CaptureOutput]
+```
+
+**Note**, if you are migrating to an **organization** repository, use
+the organization name for the "repo owner" field instead of your github
+user name.
+
 ## Contributing
 
 I'm open to contributions that make this script better.  Feel free to
