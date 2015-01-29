@@ -52,7 +52,13 @@ equivalents), those will be used to find the distribution name default.
 
 Run `rt-to-github.pl`.  You will be prompted for Github and PAUSE
 information.  If you set things up following the instructions above,
-all the prompts should be correct.
+all the prompts should be correct and you'll see your tickets migrated.
+
+**Note**, if you are migrating to an **organization** repository, use
+the organization name for the "repo owner" field instead of your github
+user name.
+
+Here's an example of how I migrated tickets for IO::CaptureOutput:
 
 ```
 $ cd ~/git/IO-CaptureOutput
@@ -63,11 +69,16 @@ repo owner:  [dagolden]
 repo name:  [IO-CaptureOutput]
 PAUSE ID:  [DAGOLDEN]
 RT dist name:  [IO-CaptureOutput]
+ticket #55165 (Forcing quoting in w...) copied to github as #6 (https://github.com/dagolden/IO-CaptureOutput/issues/6)
+ticket #41444 (Cleaning up temporar...) copied to github as #7 (https://github.com/dagolden/IO-CaptureOutput/issues/7)
+ticket #55164 (Bad joining of STDER...) copied to github as #8 (https://github.com/dagolden/IO-CaptureOutput/issues/8)
+ticket #80017 (make exit_code direc...) copied to github as #9 (https://github.com/dagolden/IO-CaptureOutput/issues/9)
+ticket #21829 (Temp File Removal Er...) copied to github as #10 (https://github.com/dagolden/IO-CaptureOutput/issues/10)
+ticket #45023 (skip on windows "Can...) copied to github as #11 (https://github.com/dagolden/IO-CaptureOutput/issues/11)
 ```
 
-**Note**, if you are migrating to an **organization** repository, use
-the organization name for the "repo owner" field instead of your github
-user name.
+Be patient, the RT REST API can be a bit slow as all the bits of
+information are pulled down to populate the new Github issue.
 
 ## Contributing
 
