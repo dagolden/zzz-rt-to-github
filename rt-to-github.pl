@@ -96,6 +96,13 @@ $rt->login(
 my @gh_issues =
   $gh_issue->repos_issues( $github_repo_owner, $github_repo, { state => 'all' } );
 
+# repos_issues may not return all issues, so need to check
+# if there are more and keep going until we have them all
+while ( $gh_issue->has_next_page ) {
+  my @next_page = $gh_issue->next_page;
+  push( @gh_issues,@next_page );
+}
+
 my %rt_gh_map;
 for my $i (@gh_issues) {
     if ( $i->{title} =~ /\[rt\.cpan\.org #(\d+)\]/ ) {
