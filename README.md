@@ -98,7 +98,7 @@ Github](http://www.dagolden.com/index.php/1938/how-to-move-cpan-rt-tickets-to-gi
 
 The version in this respository was introduced in a subsequent article,
 [Moving CPAN RT tickets to Github, now
-improved](http://www.dagolden.com/index.php/2397/moving-rt-tick…b-now-improved/).
+improved](http://www.dagolden.com/index.php/2397/moving-cpan-rt-tickets-to-github-now-improved/).
 
 The original script and subsequent improvements were based on or inspired
 by the work of others:
