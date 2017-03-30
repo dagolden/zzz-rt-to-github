@@ -39,7 +39,15 @@ sub _git_config {
 sub _pause_rc {
     my $key = shift;
     if ( $pause_rc->exists && !%pause ) {
-        %pause = split " ", $pause_rc->slurp;
+        my @pause = split qr{$/}, $pause_rc->slurp;
+        for my $line (@pause) {
+            my @credentials = split ' ', $line;
+            my $key_name = shift @credentials;
+            $pause{$key_name}
+                = $key_name eq 'password'
+                ? join ' ', @credentials
+                : shift @credentials;
+        }
     }
     return $pause{$key} // '';
 }
