@@ -18,9 +18,13 @@ use Getopt::Long;
 
 binmode( STDOUT, ":utf8" );
 
+my $RTHOST = "rt.openssl.org";
+#my $RTHOST = "rt.cpan.org";
 my $dry_run;
 my $ticket;
+my $batch;
 GetOptions(
+    "batch|b" => \$batch,
     "dry-run|n"  => \$dry_run,
     "ticket|t=i" => \$ticket
 );
@@ -80,21 +84,31 @@ sub _find_from {
     return sprintf("From %s on %s:", lc( $user->email_address // "unknown" ), $xact->created);
 }
 
-my $github_user       = prompt( "github user: ",  _git_config("github.user") );
-my $github_token      = prompt( "github token: ", _git_config("github.token") );
-my $github_repo_owner = prompt( "repo owner: ",   $github_user );
-my $github_repo       = prompt( "repo name: ",    path(".")->absolute->basename );
+sub Bprompt {
+    my $text = shift;
+    my $value = shift;
+    if ( $batch ) {
+	die "$text needs a value in batch mode" unless $value;
+	return $value;
+    }
+    return &prompt($text, $value)
+}
 
-my $rt_user = prompt( "PAUSE ID: ", _pause_rc("user") );
+my $github_user       = Bprompt( "github user: ",  _git_config("github.user") );
+my $github_token      = Bprompt( "github token: ", _git_config("github.token") );
+my $github_repo_owner = Bprompt( "repo owner: ",   "openssl" );
+my $github_repo       = Bprompt( "repo name: ",    path(".")->absolute->basename );
+
+my $rt_user = Bprompt( "RT ID: ", _pause_rc("user") );
 my $rt_password =
-  _pause_rc("password") ? _pause_rc("password") : prompt("PAUSE password: ");
-my $rt_dist = prompt( "RT dist name: ", _dist_name() );
+  _pause_rc("password") ? _pause_rc("password") : Bprompt("RT password: ");
+my $rt_dist = Bprompt( "RT queue name: ", _dist_name() );
 
 my $gh = Net::GitHub->new( access_token => $github_token );
 $gh->set_default_user_repo( $github_repo_owner, $github_repo );
 my $gh_issue = $gh->issue;
 
-my $rt = RT::Client::REST->new( server => 'https://rt.cpan.org/' );
+my $rt = RT::Client::REST->new( server => "https://$RTHOST/" );
 $rt->login(
     username => $rt_user,
     password => $rt_password
@@ -151,7 +165,7 @@ TICKET: for my $id (@rt_tickets) {
       length($subject) <= 20 ? $subject : ( substr( $subject, 0, 20 ) . "..." );
     my $status = $ticket->status;
     my $body =
-      "Migrated from [rt.cpan.org#$id](https://rt.cpan.org/Ticket/Display.html?id=$id) (status was '$status')\n";
+      "Migrated from [$RTHOST#$id](https://$RTHOST/Ticket/Display.html?id=$id) (status was '$status')\n";
 
 
     # requestor email addresses
@@ -165,7 +179,7 @@ TICKET: for my $id (@rt_tickets) {
         my $xact = $i->transaction_id;
         my $id   = $i->id;
         my $name = $i->file_name or next;
-        push @attach_links, "[$name](https://rt.cpan.org/Ticket/Attachment/$xact/$id/$name)";
+        push @attach_links, "[$name](https://$RTHOST/Ticket/Attachment/$xact/$id/$name)";
     }
     if (@attach_links) {
         my $attach_list = join( "", map { "* $_\n" } @attach_links );
@@ -197,7 +211,7 @@ TICKET: for my $id (@rt_tickets) {
         try {
             $isu = $gh_issue->create_issue(
                 {
-                    "title" => "$subject [rt.cpan.org #$id]",
+                    "title" => "[$RTHOST #$id] $subject",
                     "body"  => $body,
                 }
             );
