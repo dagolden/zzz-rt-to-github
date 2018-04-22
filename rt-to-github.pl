@@ -25,6 +25,7 @@ GetOptions(
     "ticket|t=i" => \$ticket
 );
 
+my $RT_SERVER = "rt.cpan.org";
 my $pause_rc = path( $ENV{HOME}, ".pause" );
 my %pause;
 my %user_cache;
@@ -94,7 +95,7 @@ my $gh = Net::GitHub->new( access_token => $github_token );
 $gh->set_default_user_repo( $github_repo_owner, $github_repo );
 my $gh_issue = $gh->issue;
 
-my $rt = RT::Client::REST->new( server => 'https://rt.cpan.org/' );
+my $rt = RT::Client::REST->new( server => "https://$RT_SERVER/" );
 $rt->login(
     username => $rt_user,
     password => $rt_password
@@ -151,7 +152,7 @@ TICKET: for my $id (@rt_tickets) {
       length($subject) <= 20 ? $subject : ( substr( $subject, 0, 20 ) . "..." );
     my $status = $ticket->status;
     my $body =
-      "Migrated from [rt.cpan.org#$id](https://rt.cpan.org/Ticket/Display.html?id=$id) (status was '$status')\n";
+      "Migrated from [$RT_SERVER#$id](https://$RT_SERVER/Ticket/Display.html?id=$id) (status was '$status')\n";
 
 
     # requestor email addresses
@@ -165,7 +166,7 @@ TICKET: for my $id (@rt_tickets) {
         my $xact = $i->transaction_id;
         my $id   = $i->id;
         my $name = $i->file_name or next;
-        push @attach_links, "[$name](https://rt.cpan.org/Ticket/Attachment/$xact/$id/$name)";
+        push @attach_links, "[$name](https://$RT_SERVER/Ticket/Attachment/$xact/$id/$name)";
     }
     if (@attach_links) {
         my $attach_list = join( "", map { "* $_\n" } @attach_links );
@@ -197,7 +198,7 @@ TICKET: for my $id (@rt_tickets) {
         try {
             $isu = $gh_issue->create_issue(
                 {
-                    "title" => "$subject [rt.cpan.org #$id]",
+                    "title" => "$subject [$RT_SERVER #$id]",
                     "body"  => $body,
                 }
             );
