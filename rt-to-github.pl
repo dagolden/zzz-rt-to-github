@@ -72,6 +72,12 @@ sub _dist_name {
 
 sub _find_from {
     my ( $xact ) = @_;
+
+    # hack for 'http' or 'https' user which does not exist
+    if ( $xact->creator =~ m{^https?://} ) {
+        return sprintf("From %s on %s:", $xact->creator, $xact->created);
+    }
+
     my $user = $user_cache{ $xact->creator } ||= RT::Client::REST::User->new(
         id => $xact->creator,
         rt => $xact->rt,
@@ -132,6 +138,8 @@ TICKET: for my $id (@rt_tickets) {
 
     # maybe only a single ticket
     next TICKET if $ticket && $id != $ticket;
+
+    print "Importing RT #$id\n";
 
     # skip if already migrated
     if ( my $issue = $rt_gh_map{$id} ) {
