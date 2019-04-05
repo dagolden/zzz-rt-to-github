@@ -56,7 +56,7 @@ sub _pause_rc {
 sub _dist_name {
     my ($meta) = grep { -r } qw/MYMETA.json MYMETA.yml META.json META.yml/;
     if ($meta) {
-        my $cm = CPAN::Meta->new($meta);
+        my $cm = CPAN::Meta->load_file($meta);
         return $cm->name;
     }
     elsif ( -r 'dist.ini' ) {
