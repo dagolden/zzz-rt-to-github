@@ -15,6 +15,7 @@ use RT::Client::REST::User;
 use Syntax::Keyword::Junction qw/any/;
 use Try::Tiny;
 use Getopt::Long;
+use Config::Identity::PAUSE;
 
 binmode( STDOUT, ":utf8" );
 
@@ -40,15 +41,7 @@ sub _git_config {
 sub _pause_rc {
     my $key = shift;
     if ( $pause_rc->exists && !%pause ) {
-        my @pause = split qr{$/}, $pause_rc->slurp;
-        for my $line (@pause) {
-            my @credentials = split ' ', $line;
-            my $key_name = shift @credentials;
-            $pause{$key_name}
-                = $key_name eq 'password'
-                ? join ' ', @credentials
-                : shift @credentials;
-        }
+		%pause = Config::Identity::PAUSE->load_check;
     }
     return $pause{$key} // '';
 }
