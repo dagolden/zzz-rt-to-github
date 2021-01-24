@@ -12,7 +12,6 @@ use Path::Tiny;
 use RT::Client::REST;
 use RT::Client::REST::Ticket;
 use RT::Client::REST::User;
-use Syntax::Keyword::Junction qw/any/;
 use Try::Tiny;
 use Getopt::Long;
 

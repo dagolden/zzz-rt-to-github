@@ -5,5 +5,4 @@ requires "Path::Tiny";
 requires "RT::Client::REST";
 requires "RT::Client::REST::Ticket";
 requires "RT::Client::REST::User";
-requires "Syntax::Keyword::Junction";
 requires "Try::Tiny";
