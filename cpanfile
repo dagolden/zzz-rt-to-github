@@ -7,3 +7,4 @@ requires "RT::Client::REST::Ticket";
 requires "RT::Client::REST::User";
 requires "Syntax::Keyword::Junction";
 requires "Try::Tiny";
+requires "Config::Identity::PAUSE";
